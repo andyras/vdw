@@ -101,6 +101,9 @@ int main(int argc, char ** argv) {
   bool ANGSTROM = false;// switch for Angstrom or Bohr units of length
   double UNITS = a0;	// units of length
 
+  // open the file
+  cube.open(cubeFileName, std::ios::in);
+
   // the first two lines are comments; ignore them
   std::getline(cube,cl);
   std::getline(cube,cl);
@@ -143,6 +146,35 @@ int main(int argc, char ** argv) {
     vol_a = vol*pow(a0,3);
     vol_b = vol_a;
   }
+
+  // The remaining lines in the header are the atomic coordinates.
+  std::vector<atom> atoms;
+  atoms.resize(natoms);
+  double scratch;		// variable to capture junk
+  for (int ii = 0; ii < natoms; ii++) {
+    cube >> atoms[ii].atomicNo >> scratch >> atoms[ii].x >> atoms[ii].y >> atoms[ii].z;
+  }
+
+  // The rest of the file is the volumetric data.
+  std::vector<voxel> voxels;
+  voxels.resize(nx*ny*nz);
+  int idx;			// index in voxels array
+
+  for (int ii = 0; ii < nx; ii++) {
+    for (int jj = 0; jj < ny; jj++) {
+      for (int kk = 0; kk < nz; kk++) {
+	idx = ii*ny*nz + jj*nz + kk;
+	cube >> voxels[idx].density;			// electron density
+	voxels[idx].xi = ii;				// x, y, z indices
+	voxels[idx].yi = jj;
+	voxels[idx].zi = kk;
+	voxels[idx].x = (origin[0] + ii*lx)*UNITS;	// x, y, z coordinates
+	voxels[idx].y = (origin[1] + jj*ly)*UNITS;
+	voxels[idx].z = (origin[2] + kk*lz)*UNITS;
+      }
+    }
+  }
+  cube.close();
 
   //// sum vector of voxels
   //// calculate cutoff density (fraction of total density)
