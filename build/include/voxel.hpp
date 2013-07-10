@@ -20,6 +20,6 @@ struct voxel {
 
 bool compareVoxel(const voxel &a, const voxel &b);
 
-double sumVoxelDensity(const std::vector<voxel> * voxels);
+double sumVoxelDensity(std::vector<voxel> &voxels);
 
 #endif

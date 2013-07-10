@@ -101,6 +101,7 @@ int main(int argc, char ** argv) {
   bool ANGSTROM = false;// switch for Angstrom or Bohr units of length
   double UNITS = a0;	// units of length
 
+  std::cout << "Reading input file " << cubeFileName << "..." << std::endl;
   // open the file
   cube.open(cubeFileName, std::ios::in);
 
@@ -176,7 +177,13 @@ int main(int argc, char ** argv) {
   }
   cube.close();
 
+  std::cout << "Done reading " << cubeFileName << "." << std::endl;
+
   //// sum vector of voxels
+  std::cout << "Summing total electron density..." << std::endl;
+  double totalDensity = sumVoxelDensity(voxels);
+  std::cout << "Total electron density is " << totalDensity << std::endl;
+
   //// calculate cutoff density (fraction of total density)
   //// sort vector of voxels
   //// find voxels which are within the isosurface

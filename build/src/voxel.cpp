@@ -6,7 +6,7 @@ bool compareVoxel(const voxel &a, const voxel &b) {
 }
 
 /* Sum the densities in a vector of voxels */
-double sumVoxelDensity(const std::vector<voxel> &voxels) {
+double sumVoxelDensity(std::vector<voxel> &voxels) {
   // accumulator
   double summ = 0.0;
 
