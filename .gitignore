@@ -2,3 +2,5 @@ vdw
 *out
 .*swp
 .*un~
+obj/
+*.o

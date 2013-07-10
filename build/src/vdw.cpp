@@ -52,9 +52,11 @@ int main(int argc, char ** argv) {
     std::cout << std::endl;
     std::cout << "vdw: A program for calculating some van der Waals properties of a molecule." << std::endl;
     std::cout << "     It finds the van der Waals radius of an atom in the molecule." << std::endl;
+    std::cout << "" << std::endl;
     std::cout << "Usage: vdw [-h] -a <atom index> -d <density cutoff> <cube file>" << std::endl;
     std::cout << "" << std::endl;
     std::cout << "Only the help flag is optional. A cube file is required as input." << std::endl;
+    std::cout << "" << std::endl;
     std::cout << "Flags:" << std::endl;
     std::cout << "-a: the index (starting at 0) of the atom you wish to examine" << std::endl;
     std::cout << "-d: the density cutoff (between 0 and 1)" << std::endl;
