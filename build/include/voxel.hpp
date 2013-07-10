@@ -3,8 +3,12 @@
 
 struct voxel {
   double density;
-  bool isAtSurface = false;
+  // voxel is in isosurface
   bool isInSurface = false;
+  // voxel is in atom of interest
+  bool isInAtom = false;
+  // voxel is at surface of atom of interest
+  bool isAtSurface = false;
   // x, y, and z coordinates
   double x, y, z;
   // indices of the x, y, and z positions in the cube.  These are useful when
