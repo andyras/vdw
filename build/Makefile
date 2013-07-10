@@ -1,6 +1,6 @@
 # name of main executable
 ### This line should be just about all you have to change ###
-BIN = dynamix
+BIN = vdw
 #############################################################
 
 # directories for headers, objects and source files
@@ -15,13 +15,13 @@ CPP = $(CXX)
 # optimized CPPFLAGS
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 # non-optimized CPPFLAGS
-CPPFLAGS = -Wall -g -O0 -openmp
-INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
+#CPPFLAGS = -Wall -g -O0 -openmp
+#INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
 # addition for radon
-INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
+#INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
 # addition for quest
-INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
-LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
+#INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
+#LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
 # make will look for .cpp files in $(SRCDIR)
 vpath %.cpp $(SRCDIR)
@@ -47,7 +47,7 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean cleantest build install uninstall $(BINDIR)
+.PHONY: clean build install uninstall $(BINDIR)
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(BIN)
@@ -69,18 +69,3 @@ uninstall:
 
 $(BINDIR):
 	mkdir -p ../bin
-
-# TODO update testing section of this file
-tests: dynamix libdynamix_outputs_test.o libdynamix_input_parser_test.o
-	$(CPP) -o libdynamix_outputs_test \
-	 libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
-	$(CPP) -o libdynamix_input_parser_test \
-	 libdynamix_input_parser_test.o libdynamix_input_parser.o $(LDFLAGS)
-
-libdynamix_outputs_test.o: libdynamix_outputs_test.cpp \
-        libdynamix_outputs.cpp libdynamix_outputs.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp
-
-libdynamix_input_parser_test.o: libdynamix_input_parser_test.cpp \
-        libdynamix_input_parser.cpp libdynamix_input_parser.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_input_parser_test.cpp
