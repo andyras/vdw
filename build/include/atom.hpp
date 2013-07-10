@@ -5,6 +5,6 @@ struct atom {
   // x, y, and z coordinates of the atom
   double x, y, z;
   int atomicNo;
-}
+};
 
 #endif

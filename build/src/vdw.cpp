@@ -4,7 +4,6 @@
 
 #include "voxel.hpp"
 #include "atom.hpp"
-#include "comparator.hpp"
 
 int main() {
   //// parse input parameters

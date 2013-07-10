@@ -1,6 +1,8 @@
 #ifndef __VOXEL__
 #define __VOXEL__
 
+#include <vector>
+
 struct voxel {
   double density;
   // voxel is in isosurface
@@ -17,5 +19,7 @@ struct voxel {
 };
 
 bool compareVoxel(const voxel &a, const voxel &b);
+
+double sumVoxelDensity(const std::vector<voxel> * voxels);
 
 #endif
