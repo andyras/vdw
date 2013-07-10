@@ -22,8 +22,8 @@ int main(int argc, char ** argv) {
     printHelp = true;
   }
 
-  int aoi;		// index of the atom of interest
-  double densityCutoff;	// density cutoff value (fraction of total electron density)
+  int aoi;			// index of the atom of interest
+  double densityCutoffPercent;	// density cutoff value (fraction of total electron density)
 
   //// parse input parameters
   while ((c = getopt(argc, argv, "a:d:h")) != -1) {
@@ -33,8 +33,8 @@ int main(int argc, char ** argv) {
 	std::cout << "Atom index is " << aoi << std::endl;
 	break;
       case 'd':
-	densityCutoff = atof(optarg);
-	std::cout << "Density cutoff is " << optarg << std::endl;
+	densityCutoffPercent = atof(optarg);
+	std::cout << "Density cutoff is " << densityCutoffPercent << std::endl;
 	break;
       case 'h':
 	printHelp = true;
@@ -185,7 +185,14 @@ int main(int argc, char ** argv) {
   std::cout << "Total electron density is " << totalDensity << std::endl;
 
   //// calculate cutoff density (fraction of total density)
+  double cutoffDensity = densityCutoffPercent*totalDensity;
+
   //// sort vector of voxels
+  // first copy voxel vector
+  // TODO: I AM HERE
+
+  std::sort(voxels.begin(), voxels.end(), compareVoxel);
+
   //// find voxels which are within the isosurface
   //// find electron density on the atom of interest
   //// find voxels at the surface of the atom of interest
