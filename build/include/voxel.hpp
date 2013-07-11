@@ -33,4 +33,6 @@ double voxelAtomDistance(const struct voxel * v, const struct atom * a);
 bool checkIfSurfaceVoxel(const struct voxel * v, std::vector<voxel> &vs,
                          const struct PARAMETERS * p);
 
+double voxelDistance(const struct voxel * v1, const struct voxel * v2);
+
 #endif

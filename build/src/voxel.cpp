@@ -72,3 +72,8 @@ bool checkIfSurfaceVoxel(const struct voxel * v, std::vector<voxel> &vs,
   // All other cases mean the voxel is not at the surface.
   return false;
 }
+
+/* Finds the distance between two voxels. */
+double voxelDistance(const struct voxel * v1, const struct voxel * v2) {
+  return sqrt(pow(v1->x - v2->x, 2) + pow(v1->y - v2->y, 2) + pow(v1->z - v2->z, 2));
+}

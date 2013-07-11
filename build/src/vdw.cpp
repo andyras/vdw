@@ -314,8 +314,31 @@ int main(int argc, char ** argv) {
     }
   }
   std::cout << "Number of voxels at surface of atom of interest: " << voxelsAtSurface << std::endl;
+
   //// find distances between voxels on surface of atom
+  std::vector<double> distances;
+  distances.resize(voxelsAtSurface*(voxelsAtSurface - 1));
+  idx = 0;
+
+  std::cout << std::endl;
+  std::cout << "Finding distances between surface voxels." << std::endl;
+
+  for (int ii = 0; ii < voxelsAtSurface; ii++) {
+    for (int jj = 0; jj < voxelsAtSurface; jj++) {
+      //std::cout << ii << " " << jj << std::endl;
+      if (ii != jj) {
+	distances[idx] = voxelDistance(&surfaceVoxels[ii], &surfaceVoxels[jj]);
+	idx++;
+      }
+    }
+  }
+
+  std::cout << "Done finding distances between surface voxels." << std::endl;
+  std::cout << std::endl;
+
   //// find largest distance between voxels on atoms
+  std::sort(distances.begin(), distances.end());
+
   //// write new .cube file, just with density on atom
   return 0;
 }
