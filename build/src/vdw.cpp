@@ -139,6 +139,12 @@ int main(int argc, char ** argv) {
     ny = abs(ny);
     nz = abs(nz);
   }
+  // convert to Angstrom
+  else {
+    for (int ii = 0; ii < 3; ii++) {
+      origin[ii] *= a0;
+    }
+  }
 
   // Compute the voxel volume
   lx = sqrt(pow(xv[0], 2) + pow(xv[1], 2) + pow(xv[2], 2));
@@ -179,6 +185,10 @@ int main(int argc, char ** argv) {
       atoms[ii].y *= a0;
       atoms[ii].z *= a0;
     }
+    // shift all atomic coordinates
+    atoms[ii].x += origin[0];
+    atoms[ii].y += origin[1];
+    atoms[ii].z += origin[2];
   }
   std::cout << std::endl;
   std::cout << "Coordinates of atoms:" << std::endl;
@@ -267,6 +277,13 @@ int main(int argc, char ** argv) {
   for (int ii = 0; ii < surfaceIndex; ii++) {
     for (int jj = 0; jj < natoms; jj++) {
       voxelAOIDistance = voxelAtomDistance(&voxels[ii], &atoms[aoi]);
+      //if (ii <= 10) {
+	//std::cout << "Distance from voxel " << ii << " to atom " << aoi << ": " << voxelAOIDistance << std::endl;
+	//std::cout << "Offset is "
+      std::cout << (voxels[ii].x - atoms[aoi].x)
+		  << " " << (voxels[ii].y - atoms[aoi].y)
+		  << " " << (voxels[ii].z - atoms[aoi].z) << std::endl;
+      //}
       if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
 	voxels[ii].isInAtom = false;
 	voxelsInAtom -= 1;

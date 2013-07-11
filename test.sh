@@ -11,4 +11,4 @@ fi
 make install
 cd - &> /dev/null
 
-./bin/vdw -a 0 -d 0.5 test.cube
+./bin/vdw -a 3 -d 0.5 test.cube
