@@ -27,9 +27,10 @@ int main(int argc, char ** argv) {
 
   int aoi = 0;				// index of the atom of interest
   double densityCutoffPercent = 0.5;	// density cutoff value (fraction of total electron density)
+  bool outputCube = false;
 
   //// parse input parameters
-  while ((c = getopt(argc, argv, "a:d:h")) != -1) {
+  while ((c = getopt(argc, argv, "a:d:ch")) != -1) {
     switch (c) {
       case 'a':
 	aoi = atoi(optarg);
@@ -38,6 +39,9 @@ int main(int argc, char ** argv) {
       case 'd':
 	densityCutoffPercent = atof(optarg);
 	std::cout << "Density cutoff is " << densityCutoffPercent << std::endl;
+	break;
+      case 'c':
+	outputCube = true;
 	break;
       case 'h':
 	printHelp = true;
@@ -75,6 +79,9 @@ int main(int argc, char ** argv) {
     std::cout << "Flags:" << std::endl;
     std::cout << "-a: the index (starting at 0) of the atom you wish to examine" << std::endl;
     std::cout << "-d: the density cutoff (between 0 and 1)" << std::endl;
+    std::cout << "-c: output a file with the density on just the atom of interest" << std::endl;
+    std::cout << "    if this option is activated, the program will exit after writing" << std::endl;
+    std::cout << "    the file." << std::endl;
     std::cout << "-h: print this help message" << std::endl;
     std::cout << "" << std::endl;
     return 2;
@@ -233,6 +240,63 @@ int main(int argc, char ** argv) {
   cube.close();
 
   std::cout << "Done reading " << cubeFileName << "." << std::endl;
+
+  //// output cube with just density of atom of interest
+  if (outputCube) {
+    char * fileName = "AOI.cube";
+
+    std::cout << "AOI data will be written to " << fileName << std::endl;
+
+    std::ofstream o (fileName, std::ios::trunc);
+    // write comment lines
+    o << "Electron density on atom at index " << aoi << std::endl;
+    o << "Data originally from " << cubeFileName << std::endl;
+    o << std::setprecision(6);
+    // write number of atoms and origin
+    o << std::setw(5) << natoms << " ";
+    o << std::setw(12) << std::scientific << origin[0] << " ";
+    o << std::setw(12) << std::scientific << origin[1] << " ";
+    o << std::setw(12) << std::scientific << origin[2] << std::endl;
+    // write x, y, z number of points and unit vectors
+    o << std::setw(5) << nx << " ";
+    o << std::setw(12) << std::scientific << xv[0] << " ";
+    o << std::setw(12) << std::scientific << xv[1] << " ";
+    o << std::setw(12) << std::scientific << xv[2] << std::endl;
+    o << std::setw(5) << ny << " ";
+    o << std::setw(12) << std::scientific << yv[0] << " ";
+    o << std::setw(12) << std::scientific << yv[1] << " ";
+    o << std::setw(12) << std::scientific << yv[2] << std::endl;
+    o << std::setw(5) << nz << " ";
+    o << std::setw(12) << std::scientific << zv[0] << " ";
+    o << std::setw(12) << std::scientific << zv[1] << " ";
+    o << std::setw(12) << std::scientific << zv[2] << std::endl;
+    // write atomic numbers, dummy value and coordinates
+    for (int ii = 0; ii < natoms; ii++) {
+      o << std::setw(5) << atoms[ii].atomicNo << " ";
+      o << std::setw(12) << std::scientific << 0.0 << " ";
+      o << std::setw(12) << std::scientific << atoms[ii].x << " ";
+      o << std::setw(12) << std::scientific << atoms[ii].y << " ";
+      o << std::setw(12) << std::scientific << atoms[ii].z << std::endl;
+    }
+    // write voxel data
+    for (int ii = 0; ii < voxels.size(); ii++) {
+      if (voxelInAtom(&voxels[ii], aoi, atoms)) {
+	o << std::setw(12) << std::scientific << voxels[ii].density << " ";
+      }
+      else {
+	o << std::setw(12) << std::scientific << 0.0 << " ";
+      }
+      // line break every six voxels
+      if (!(ii % 6)) {
+	o << std::endl;
+      }
+    }
+    o.close();
+
+    std::cout << "That's all, folks!" << std::endl;
+
+    return 0;
+  }
 
   //// sum vector of voxels
   std::cout << "Summing total electron density..." << std::endl;
