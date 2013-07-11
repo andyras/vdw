@@ -253,45 +253,50 @@ int main(int argc, char ** argv) {
   //// find voxels which are within the isosurface
   // starting with highest density, accumulate until cutoff is reached
   double sumDensity = 0.0;
-  // surfaceIndex is a variable which will define the range of voxels in the
+  // isoSurfaceIndex is a variable which will define the range of voxels in the
   // surface surrounding the cutoff density.
-  // At the end of the loop, surfaceIndex will have a value that can be used in
-  // a loop, e.g. 'for (int ii = 0; ii < surfaceIndex; ii++)' will loop over
+  // At the end of the loop, isoSurfaceIndex will have a value that can be used in
+  // a loop, e.g. 'for (int ii = 0; ii < isoSurfaceIndex; ii++)' will loop over
   // elements within the overall surface.
-  int surfaceIndex = 0;
+  int isoSurfaceIndex = 0;
   while (sumDensity < cutoffDensity) {
-    sumDensity += voxels[surfaceIndex].density;
-    voxels[surfaceIndex].isInIsoSurface = true;
-    //std::cout << "ii " << surfaceIndex << " density " << voxels[surfaceIndex].density << " sumDensity " << sumDensity << std::endl;
-    surfaceIndex++;
+    sumDensity += voxels[isoSurfaceIndex].density;
+    voxels[isoSurfaceIndex].isInIsoSurface = true;
+    //std::cout << "ii " << isoSurfaceIndex << " density " << voxels[isoSurfaceIndex].density << " sumDensity " << sumDensity << std::endl;
+    isoSurfaceIndex++;
   }
-  //for (surfaceIndex = 0; sumDensity < cutoffDensity; sumDensity += voxels[surfaceIndex++].density) {
-    //voxels[surfaceIndex].isInIsoSurface = true;
+  //for (isoSurfaceIndex = 0; sumDensity < cutoffDensity; sumDensity += voxels[isoSurfaceIndex++].density) {
+    //voxels[isoSurfaceIndex].isInIsoSurface = true;
   //}
   // find the closest possible value of the cutoff density
-  if (fabs(sumDensity - cutoffDensity) > fabs(sumDensity - voxels[surfaceIndex-1].density - cutoffDensity)) {
-    sumDensity -= voxels[surfaceIndex-1].density;
-    surfaceIndex -= 1;
+  if (fabs(sumDensity - cutoffDensity) > fabs(sumDensity - voxels[isoSurfaceIndex-1].density - cutoffDensity)) {
+    sumDensity -= voxels[isoSurfaceIndex-1].density;
+    isoSurfaceIndex -= 1;
   }
   std::cout << "Sum of voxels approximating cutoff density: " << sumDensity << std::endl;
-  std::cout << "Number of voxels within cutoff density: " << surfaceIndex << std::endl;
-  std::cout << "Volume within cutoff density: " << vol*surfaceIndex << std::endl;
+  std::cout << "Number of voxels within cutoff density: " << isoSurfaceIndex << std::endl;
+  std::cout << "Volume within cutoff density: " << vol*isoSurfaceIndex << std::endl;
 
   //// find electron density on the atom of interest
   std::cout << "Finding voxels closest to atom of interest" << std::endl;
-  int voxelsInAtom = surfaceIndex;	// count of the voxels which are in the atom of interest
-  double voxelAOIDistance;		// distance from a voxel to the atom of interest
-  for (int ii = 0; ii < surfaceIndex; ii++) {
+  int voxelsInAtom = 0;		// count of the voxels which are in the atom of interest
+  double voxelAOIDistance;	// distance from a voxel to the atom of interest
+  bool isInAtom = false;	// bool for whether a voxel is in the atom of interest
+  for (int ii = 0; ii < isoSurfaceIndex; ii++) {
+    isInAtom = true;
     for (int jj = 0; jj < natoms; jj++) {
       voxelAOIDistance = voxelAtomDistance(&voxels[ii], &atoms[aoi]);
       // a voxel is in the atom if no other atoms are closer
       if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
-	voxels[ii].isInAtom = false;
-	// set the flag in the copy also
-	voxelsCopy[voxels[ii].xi*ny*nz + voxels[ii].yi*nz + voxels[ii].zi].isInAtom = false;
-	voxelsInAtom--;
+	isInAtom = false;
 	break;
       }
+    }
+    if (isInAtom) {
+      voxelsInAtom++;
+      voxels[ii].isInAtom = true;
+      // set the flag in the copy also
+      voxelsCopy[voxels[ii].xi*ny*nz + voxels[ii].yi*nz + voxels[ii].zi].isInAtom = true;
     }
   }
   std::cout << "Number of voxels within atom of interest: " << voxelsInAtom << std::endl;
@@ -299,7 +304,7 @@ int main(int argc, char ** argv) {
   //// find voxels at the surface of the atom of interest
   std::vector<voxel> surfaceVoxels;
   int voxelsAtSurface = 0;
-  for (int ii = 0; ii < surfaceIndex; ii++) {
+  for (int ii = 0; ii < isoSurfaceIndex; ii++) {
     if ((voxels[ii].isInAtom)) {
       if (checkIfSurfaceVoxel(&voxels[ii], voxelsCopy, &params)) {
 	voxels[ii].isAtSurface = true;

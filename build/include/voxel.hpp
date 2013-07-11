@@ -14,7 +14,7 @@ struct voxel {
   // voxel is in isosurface
   bool isInIsoSurface = false;
   // voxel is in atom of interest
-  bool isInAtom = true;
+  bool isInAtom = false;
   // voxel is at surface of atom of interest
   bool isAtSurface = false;
   // x, y, and z coordinates
