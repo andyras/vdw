@@ -261,12 +261,12 @@ int main(int argc, char ** argv) {
   int surfaceIndex = 0;
   while (sumDensity < cutoffDensity) {
     sumDensity += voxels[surfaceIndex].density;
-    voxels[surfaceIndex].isInSurface = true;
+    voxels[surfaceIndex].isInIsoSurface = true;
     //std::cout << "ii " << surfaceIndex << " density " << voxels[surfaceIndex].density << " sumDensity " << sumDensity << std::endl;
     surfaceIndex++;
   }
   //for (surfaceIndex = 0; sumDensity < cutoffDensity; sumDensity += voxels[surfaceIndex++].density) {
-    //voxels[surfaceIndex].isInSurface = true;
+    //voxels[surfaceIndex].isInIsoSurface = true;
   //}
   // find the closest possible value of the cutoff density
   if (fabs(sumDensity - cutoffDensity) > fabs(sumDensity - voxels[surfaceIndex-1].density - cutoffDensity)) {
@@ -284,19 +284,12 @@ int main(int argc, char ** argv) {
   for (int ii = 0; ii < surfaceIndex; ii++) {
     for (int jj = 0; jj < natoms; jj++) {
       voxelAOIDistance = voxelAtomDistance(&voxels[ii], &atoms[aoi]);
-      //if (ii <= 10) {
-	//std::cout << "Distance from voxel " << ii << " to atom " << aoi << ": " << voxelAOIDistance << std::endl;
-	//std::cout << "Offset is "
-	/*
-      std::cout << (voxels[ii].x - atoms[aoi].x)
-		  << " " << (voxels[ii].y - atoms[aoi].y)
-		  << " " << (voxels[ii].z - atoms[aoi].z)
-		  << " " << voxels[ii].density << std::endl;
-		  */
-      //}
+      // a voxel is in the atom if no other atoms are closer
       if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
 	voxels[ii].isInAtom = false;
-	voxelsInAtom -= 1;
+	// set the flag in the copy also
+	voxelsCopy[voxels[ii].xi*ny*nz + voxels[ii].yi*nz + voxels[ii].zi].isInAtom = false;
+	voxelsInAtom--;
 	break;
       }
     }
@@ -305,12 +298,17 @@ int main(int argc, char ** argv) {
 
   //// find voxels at the surface of the atom of interest
   std::vector<voxel> surfaceVoxels;
+  int voxelsAtSurface = 0;
   for (int ii = 0; ii < surfaceIndex; ii++) {
-    if (checkIfSurfaceVoxel(&voxels[ii], voxelsCopy, &params)) {
-      voxels[ii].isAtSurface = true;
-      surfaceVoxels.push_back(voxels[ii]);
+    if ((voxels[ii].isInAtom)) {
+      if (checkIfSurfaceVoxel(&voxels[ii], voxelsCopy, &params)) {
+	voxels[ii].isAtSurface = true;
+	surfaceVoxels.push_back(voxels[ii]);
+	voxelsAtSurface++;
+      }
     }
   }
+  std::cout << "Number of voxels at surface of atom of interest: " << voxelsAtSurface << std::endl;
   //// find distances between voxels on surface of atom
   //// find largest distance between voxels on atoms
   //// write new .cube file, just with density on atom

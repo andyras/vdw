@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "atom.hpp"
 #include "params.hpp"
@@ -10,7 +12,7 @@
 struct voxel {
   double density;
   // voxel is in isosurface
-  bool isInSurface = false;
+  bool isInIsoSurface = false;
   // voxel is in atom of interest
   bool isInAtom = true;
   // voxel is at surface of atom of interest
@@ -19,7 +21,7 @@ struct voxel {
   double x, y, z;
   // indices of the x, y, and z positions in the cube.  These are useful when
   // referencing other voxels by index (as in finding surface voxels)
-  double xi, yi, zi;
+  int xi, yi, zi;
 };
 
 bool compareVoxel(const voxel &a, const voxel &b);
