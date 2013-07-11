@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include "voxel.hpp"
 #include "atom.hpp"
@@ -317,19 +318,15 @@ int main(int argc, char ** argv) {
 
   //// find distances between voxels on surface of atom
   std::vector<double> distances;
-  distances.resize(voxelsAtSurface*(voxelsAtSurface - 1));
-  idx = 0;
+  distances.resize(voxelsAtSurface*(voxelsAtSurface - 1)/2);
 
   std::cout << std::endl;
   std::cout << "Finding distances between surface voxels." << std::endl;
 
   for (int ii = 0; ii < voxelsAtSurface; ii++) {
-    for (int jj = 0; jj < voxelsAtSurface; jj++) {
+    for (int jj = 0; jj < ii; jj++) {
       //std::cout << ii << " " << jj << std::endl;
-      if (ii != jj) {
-	distances[idx] = voxelDistance(&surfaceVoxels[ii], &surfaceVoxels[jj]);
-	idx++;
-      }
+      distances[ii*voxelsAtSurface + jj] = voxelDistance(&surfaceVoxels[ii], &surfaceVoxels[jj]);
     }
   }
 
@@ -338,6 +335,20 @@ int main(int argc, char ** argv) {
 
   //// find largest distance between voxels on atoms
   std::sort(distances.begin(), distances.end());
+
+  std::cout << std::endl;
+  std::cout << "Largest distance between surface voxels is " << distances.back() << " Angstrom." << std::endl;
+  double distanceSum = std::accumulate(distances.begin(), distances.end(), 0);
+  std::cout << "Average distance between surface voxels is "
+            << (distanceSum/distances.size()) << " Angstrom." << std::endl;
+  std::cout << std::endl;
+  char * fileName = "distances.out";
+  std::cout << "All distances between surface voxels will be written to " << fileName << "." << std::endl;
+  std::ofstream o (fileName);
+  for (int ii = 0; ii < distances.size(); ii++) {
+    o << distances[ii] << std::endl;
+  }
+  o.close();
 
   //// write new .cube file, just with density on atom
   return 0;
