@@ -143,8 +143,15 @@ int main(int argc, char ** argv) {
   else {
     for (int ii = 0; ii < 3; ii++) {
       origin[ii] *= a0;
+      xv[ii] *= a0;
+      yv[ii] *= a0;
+      zv[ii] *= a0;
     }
   }
+  std::cout << "The origin is at     " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl;
+  std::cout << "The x unit vector is " << xv[0] << " " << xv[1] << " " << xv[2] << std::endl;
+  std::cout << "The y unit vector is " << yv[0] << " " << yv[1] << " " << yv[2] << std::endl;
+  std::cout << "The z unit vector is " << zv[0] << " " << zv[1] << " " << zv[2] << std::endl;
 
   // Compute the voxel volume
   lx = sqrt(pow(xv[0], 2) + pow(xv[1], 2) + pow(xv[2], 2));
@@ -186,9 +193,10 @@ int main(int argc, char ** argv) {
       atoms[ii].z *= a0;
     }
     // shift all atomic coordinates
-    atoms[ii].x += origin[0];
-    atoms[ii].y += origin[1];
-    atoms[ii].z += origin[2];
+    // TODO why are these being shifted the wrong way?
+    atoms[ii].x -= origin[0];
+    atoms[ii].y -= origin[1];
+    atoms[ii].z -= origin[2];
   }
   std::cout << std::endl;
   std::cout << "Coordinates of atoms:" << std::endl;
@@ -215,9 +223,9 @@ int main(int argc, char ** argv) {
 	voxels[idx].xi = ii;			// x, y, z indices
 	voxels[idx].yi = jj;
 	voxels[idx].zi = kk;
-	voxels[idx].x = (origin[0] + ii*lx);	// x, y, z coordinates
-	voxels[idx].y = (origin[1] + jj*ly);
-	voxels[idx].z = (origin[2] + kk*lz);
+	voxels[idx].x = (origin[0] + (ii-1)*xv[0] + (jj-1)*xv[1] + (kk-1)*xv[2]);	// x, y, z coordinates
+	voxels[idx].y = (origin[0] + (ii-1)*yv[0] + (jj-1)*yv[1] + (kk-1)*yv[2]);
+	voxels[idx].z = (origin[0] + (ii-1)*zv[0] + (jj-1)*zv[1] + (kk-1)*zv[2]);
       }
     }
   }
@@ -251,7 +259,6 @@ int main(int argc, char ** argv) {
   // a loop, e.g. 'for (int ii = 0; ii < surfaceIndex; ii++)' will loop over
   // elements within the overall surface.
   int surfaceIndex = 0;
-  //TODO is this loop working properly?
   while (sumDensity < cutoffDensity) {
     sumDensity += voxels[surfaceIndex].density;
     voxels[surfaceIndex].isInSurface = true;
@@ -280,9 +287,12 @@ int main(int argc, char ** argv) {
       //if (ii <= 10) {
 	//std::cout << "Distance from voxel " << ii << " to atom " << aoi << ": " << voxelAOIDistance << std::endl;
 	//std::cout << "Offset is "
+	/*
       std::cout << (voxels[ii].x - atoms[aoi].x)
 		  << " " << (voxels[ii].y - atoms[aoi].y)
-		  << " " << (voxels[ii].z - atoms[aoi].z) << std::endl;
+		  << " " << (voxels[ii].z - atoms[aoi].z)
+		  << " " << voxels[ii].density << std::endl;
+		  */
       //}
       if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
 	voxels[ii].isInAtom = false;

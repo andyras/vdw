@@ -11,4 +11,5 @@ fi
 make install
 cd - &> /dev/null
 
-./bin/vdw -a 3 -d 0.5 test.cube
+./bin/vdw -a 1 -d 0.5 test.cube
+#./bin/vdw -a 3 -d 0.5 bq1-homo0-100.cube
