@@ -2,13 +2,17 @@
 #define __VOXEL__
 
 #include <vector>
+#include <cmath>
+
+#include "atom.hpp"
+#include "params.hpp"
 
 struct voxel {
   double density;
   // voxel is in isosurface
   bool isInSurface = false;
   // voxel is in atom of interest
-  bool isInAtom = false;
+  bool isInAtom = true;
   // voxel is at surface of atom of interest
   bool isAtSurface = false;
   // x, y, and z coordinates
@@ -21,5 +25,10 @@ struct voxel {
 bool compareVoxel(const voxel &a, const voxel &b);
 
 double sumVoxelDensity(std::vector<voxel> &voxels);
+
+double voxelAtomDistance(const struct voxel * v, const struct atom * a);
+
+bool checkIfSurfaceVoxel(const struct voxel * v, std::vector<voxel> &vs,
+                         const struct PARAMETERS * p);
 
 #endif

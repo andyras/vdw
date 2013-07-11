@@ -12,6 +12,7 @@
 #include "voxel.hpp"
 #include "atom.hpp"
 #include "constants.hpp"
+#include "params.hpp"
 
 int main(int argc, char ** argv) {
   bool printHelp = false;
@@ -100,7 +101,7 @@ int main(int argc, char ** argv) {
   double vol;		// voxel volume
   double vol_a, vol_b;	// not sure what these are
   bool ANGSTROM = false;// switch for Angstrom or Bohr units of length
-  double UNITS = a0;	// units of length
+  PARAMETERS params;	// struct of params
 
   std::cout << "Reading input file " << cubeFileName << "..." << std::endl;
   // open the file
@@ -123,6 +124,9 @@ int main(int argc, char ** argv) {
   cube >> ny >> yv[0] >> yv[1] >> yv[2];
   cube >> nz >> zv[0] >> zv[1] >> zv[2];
   std::cout << "Grid dimensions are " << nx << " x " << ny << " x " << nz << " points." << std::endl;
+  params.nx = nx;
+  params.ny = ny;
+  params.nz = nz;
 
   // If the sign of the number of voxels is positive, then the units are
   // Bohr, if negative then Angstrom.
@@ -131,7 +135,6 @@ int main(int argc, char ** argv) {
   // INTERNALLY THIS PROGRAM USES ANGSTROM
   if (nx < 0) {
     ANGSTROM = true;
-    UNITS = 1.0;
     nx = abs(nx);
     ny = abs(ny);
     nz = abs(nz);
@@ -147,6 +150,9 @@ int main(int argc, char ** argv) {
     ly *= a0;
     lz *= a0;
   }
+  params.lx = lx;
+  params.ly = ly;
+  params.lz = lz;
   vol = lx*ly*lz;
   std::cout << "Grid extends over " << nx*lx << " x " << ny*ly << " x " << nz*lz << " Angstrom." << std::endl;
   std::cout << "Grid extends over " << nx*lx/a0 << " x " << ny*ly/a0 << " x " << nz*lz/a0 << " Bohr." << std::endl;
@@ -195,13 +201,13 @@ int main(int argc, char ** argv) {
       for (int kk = 0; kk < nz; kk++) {
 	idx = ii*ny*nz + jj*nz + kk;
 	cube >> scratch;
-	voxels[idx].density = vol*scratch;		// electron density times volume element
-	voxels[idx].xi = ii;				// x, y, z indices
+	voxels[idx].density = fabs(scratch);	// electron density
+	voxels[idx].xi = ii;			// x, y, z indices
 	voxels[idx].yi = jj;
 	voxels[idx].zi = kk;
-	voxels[idx].x = (origin[0] + ii*lx)*UNITS;	// x, y, z coordinates
-	voxels[idx].y = (origin[1] + jj*ly)*UNITS;
-	voxels[idx].z = (origin[2] + kk*lz)*UNITS;
+	voxels[idx].x = (origin[0] + ii*lx);	// x, y, z coordinates
+	voxels[idx].y = (origin[1] + jj*ly);
+	voxels[idx].z = (origin[2] + kk*lz);
       }
     }
   }
@@ -213,9 +219,11 @@ int main(int argc, char ** argv) {
   std::cout << "Summing total electron density..." << std::endl;
   double totalDensity = sumVoxelDensity(voxels);
   std::cout << "Total electron density is " << totalDensity << std::endl;
+  std::cout << "Total electron population is " << totalDensity*vol << std::endl;
 
   //// calculate cutoff density (fraction of total density)
   double cutoffDensity = densityCutoffPercent*totalDensity;
+  std::cout << "Cutoff electron density is " << cutoffDensity << std::endl;
 
   //// sort vector of voxels
   // first copy voxel vector, for reference to find indices
@@ -226,10 +234,58 @@ int main(int argc, char ** argv) {
 
   //// find voxels which are within the isosurface
   // starting with highest density, accumulate until cutoff is reached
+  double sumDensity = 0.0;
+  // surfaceIndex is a variable which will define the range of voxels in the
+  // surface surrounding the cutoff density.
+  // At the end of the loop, surfaceIndex will have a value that can be used in
+  // a loop, e.g. 'for (int ii = 0; ii < surfaceIndex; ii++)' will loop over
+  // elements within the overall surface.
+  int surfaceIndex = 0;
+  //TODO is this loop working properly?
+  while (sumDensity < cutoffDensity) {
+    sumDensity += voxels[surfaceIndex].density;
+    voxels[surfaceIndex].isInSurface = true;
+    //std::cout << "ii " << surfaceIndex << " density " << voxels[surfaceIndex].density << " sumDensity " << sumDensity << std::endl;
+    surfaceIndex++;
+  }
+  //for (surfaceIndex = 0; sumDensity < cutoffDensity; sumDensity += voxels[surfaceIndex++].density) {
+    //voxels[surfaceIndex].isInSurface = true;
+  //}
+  // find the closest possible value of the cutoff density
+  if (fabs(sumDensity - cutoffDensity) > fabs(sumDensity - voxels[surfaceIndex-1].density - cutoffDensity)) {
+    sumDensity -= voxels[surfaceIndex-1].density;
+    surfaceIndex -= 1;
+  }
+  std::cout << "Sum of voxels approximating cutoff density: " << sumDensity << std::endl;
+  std::cout << "Number of voxels within cutoff density: " << surfaceIndex << std::endl;
+  std::cout << "Volume within cutoff density: " << vol*surfaceIndex << std::endl;
 
   //// find electron density on the atom of interest
+  std::cout << "Finding voxels closest to atom of interest" << std::endl;
+  int voxelsInAtom = surfaceIndex;	// count of the voxels which are in the atom of interest
+  double voxelAOIDistance;		// distance from a voxel to the atom of interest
+  for (int ii = 0; ii < surfaceIndex; ii++) {
+    for (int jj = 0; jj < natoms; jj++) {
+      voxelAOIDistance = voxelAtomDistance(&voxels[ii], &atoms[aoi]);
+      if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
+	voxels[ii].isInAtom = false;
+	voxelsInAtom -= 1;
+	break;
+      }
+    }
+  }
+  std::cout << "Number of voxels within atom of interest: " << voxelsInAtom << std::endl;
+
   //// find voxels at the surface of the atom of interest
+  std::vector<voxel> surfaceVoxels;
+  for (int ii = 0; ii < surfaceIndex; ii++) {
+    if (checkIfSurfaceVoxel(&voxels[ii], voxelsCopy, &params)) {
+      voxels[ii].isAtSurface = true;
+      surfaceVoxels.push_back(voxels[ii]);
+    }
+  }
   //// find distances between voxels on surface of atom
   //// find largest distance between voxels on atoms
+  //// write new .cube file, just with density on atom
   return 0;
 }
