@@ -323,10 +323,13 @@ int main(int argc, char ** argv) {
   std::cout << std::endl;
   std::cout << "Finding distances between surface voxels." << std::endl;
 
+  idx = 0;
   for (int ii = 0; ii < voxelsAtSurface; ii++) {
+    // only need to compute half the pairs
     for (int jj = 0; jj < ii; jj++) {
       //std::cout << ii << " " << jj << std::endl;
-      distances[ii*voxelsAtSurface + jj] = voxelDistance(&surfaceVoxels[ii], &surfaceVoxels[jj]);
+      distances[idx] = voxelDistance(&surfaceVoxels[ii], &surfaceVoxels[jj]);
+      idx++;
     }
   }
 
@@ -344,7 +347,7 @@ int main(int argc, char ** argv) {
   std::cout << std::endl;
   char * fileName = "distances.out";
   std::cout << "All distances between surface voxels will be written to " << fileName << "." << std::endl;
-  std::ofstream o (fileName);
+  std::ofstream o (fileName, std::ofstream::trunc);
   for (int ii = 0; ii < distances.size(); ii++) {
     o << distances[ii] << std::endl;
   }
