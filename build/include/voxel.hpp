@@ -35,4 +35,6 @@ bool checkIfSurfaceVoxel(const struct voxel * v, std::vector<voxel> &vs,
 
 double voxelDistance(const struct voxel * v1, const struct voxel * v2);
 
+bool voxelInAtom(const struct voxel * v, const int a, std::vector<atom> &as);
+
 #endif

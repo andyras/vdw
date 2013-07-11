@@ -25,8 +25,8 @@ int main(int argc, char ** argv) {
     printHelp = true;
   }
 
-  int aoi;			// index of the atom of interest
-  double densityCutoffPercent;	// density cutoff value (fraction of total electron density)
+  int aoi = 0;				// index of the atom of interest
+  double densityCutoffPercent = 0.5;	// density cutoff value (fraction of total electron density)
 
   //// parse input parameters
   while ((c = getopt(argc, argv, "a:d:h")) != -1) {
@@ -92,7 +92,7 @@ int main(int argc, char ** argv) {
   //// read in .cube file
   std::ifstream cube;
   std::string cl;	// current line
-  int natoms;		// number of atoms
+  int natoms = 0;	// number of atoms
   int nx, ny, nz;	// number of voxels in each dimension
   double origin [3];	// coordinates of origin
   double xv [3];	// vectors of x, y, z directions
@@ -284,16 +284,7 @@ int main(int argc, char ** argv) {
   double voxelAOIDistance;	// distance from a voxel to the atom of interest
   bool isInAtom = false;	// bool for whether a voxel is in the atom of interest
   for (int ii = 0; ii < isoSurfaceIndex; ii++) {
-    isInAtom = true;
-    for (int jj = 0; jj < natoms; jj++) {
-      voxelAOIDistance = voxelAtomDistance(&voxels[ii], &atoms[aoi]);
-      // a voxel is in the atom if no other atoms are closer
-      if ((jj != aoi) && (voxelAtomDistance(&voxels[ii], &atoms[jj]) < voxelAOIDistance)) {
-	isInAtom = false;
-	break;
-      }
-    }
-    if (isInAtom) {
+    if (voxelInAtom(&voxels[ii], aoi, atoms)) {
       voxelsInAtom++;
       voxels[ii].isInAtom = true;
       // set the flag in the copy also
@@ -345,11 +336,26 @@ int main(int argc, char ** argv) {
   std::cout << "Average distance between surface voxels is "
             << (distanceSum/distances.size()) << " Angstrom." << std::endl;
   std::cout << std::endl;
+
+  // create bins to count voxels
+  int nBins = 100;
+  std::vector<int> bins (nBins, 0);	// initialize all bins to 0
+  std::cout << "Number of bins is " << bins.size() << std::endl;
+  double binSize = fabs(distances.back() - distances.front())/nBins;
+  std::cout << "Bin size is " << binSize << std::endl;
+  for (int ii = 0; ii < (distances.size()-1); ii++) {
+    bins[int((distances[ii] - distances.front())/binSize)]++;
+  }
+  // last distance goes in last bin
+  bins[nBins-1]++;
+
   char * fileName = "distances.out";
-  std::cout << "All distances between surface voxels will be written to " << fileName << "." << std::endl;
-  std::ofstream o (fileName, std::ofstream::trunc);
-  for (int ii = 0; ii < distances.size(); ii++) {
-    o << distances[ii] << std::endl;
+  std::cout << "Histogram of distances between surface voxels will be written to " << fileName << "." << std::endl;
+  //std::ofstream o (fileName, std::ofstream::trunc);
+  std::ofstream o (fileName);
+  for (int ii = 0; ii < nBins; ii++) {
+    // x point in output is at bin center
+    o << (distances.front() + (ii+0.5)*binSize) << " " << bins[ii] << std::endl;
   }
   o.close();
 

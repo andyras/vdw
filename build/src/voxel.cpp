@@ -77,3 +77,18 @@ bool checkIfSurfaceVoxel(const struct voxel * v, std::vector<voxel> &vs,
 double voxelDistance(const struct voxel * v1, const struct voxel * v2) {
   return sqrt(pow(v1->x - v2->x, 2) + pow(v1->y - v2->y, 2) + pow(v1->z - v2->z, 2));
 }
+
+/* Decides whether a voxel is in an atom of interest. */
+bool voxelInAtom(const struct voxel * v, const int a, std::vector<atom> &as) {
+    bool isInAtom = true;
+    double voxelAOIDistance = 1e20;
+    for (int jj = 0; jj < as.size(); jj++) {
+      voxelAOIDistance = voxelAtomDistance(v, &as[a]);
+      // a voxel is in the atom if no other atoms are closer
+      if ((jj != a) && (voxelAtomDistance(v, &as[jj]) < voxelAOIDistance)) {
+	isInAtom = false;
+	break;
+      }
+    }
+  return isInAtom;
+}
