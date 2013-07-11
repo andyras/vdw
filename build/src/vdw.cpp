@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -121,22 +122,35 @@ int main(int argc, char ** argv) {
   cube >> nx >> xv[0] >> xv[1] >> xv[2];
   cube >> ny >> yv[0] >> yv[1] >> yv[2];
   cube >> nz >> zv[0] >> zv[1] >> zv[2];
+  std::cout << "Grid dimensions are " << nx << " x " << ny << " x " << nz << " points." << std::endl;
+
+  // If the sign of the number of voxels is positive, then the units are
+  // Bohr, if negative then Angstrom.
+  // TODO: Gaussian manual contradicts this code; in the G09 manual (nx < 0)
+  // means Bohr.
+  // INTERNALLY THIS PROGRAM USES ANGSTROM
+  if (nx < 0) {
+    ANGSTROM = true;
+    UNITS = 1.0;
+    nx = abs(nx);
+    ny = abs(ny);
+    nz = abs(nz);
+  }
 
   // Compute the voxel volume
   lx = sqrt(pow(xv[0], 2) + pow(xv[1], 2) + pow(xv[2], 2));
   ly = sqrt(pow(yv[0], 2) + pow(yv[1], 2) + pow(yv[2], 2));
   lz = sqrt(pow(zv[0], 2) + pow(zv[1], 2) + pow(zv[2], 2));
-  vol = lx*ly*lz;
-
-  // If the sign of the number of voxels is positive, then the units are
-  // Bohr, if negative then Angstrom.
-  if (nx < 0) {
-    ANGSTROM = true;
-    UNITS = 1.0;
-    nx *= -1;
-    ny *= -1;
-    nz *= -1;
+  // if the lengths are in Bohr, convert to Angstrom
+  if (!ANGSTROM) {
+    lx *= a0;
+    ly *= a0;
+    lz *= a0;
   }
+  vol = lx*ly*lz;
+  std::cout << "Grid extends over " << nx*lx << " x " << ny*ly << " x " << nz*lz << " Angstrom." << std::endl;
+  std::cout << "Grid extends over " << nx*lx/a0 << " x " << ny*ly/a0 << " x " << nz*lz/a0 << " Bohr." << std::endl;
+  std::cout << "Voxel volume is " << lx*ly*lz << " Angstrom^3 (" << lx*ly*lz/pow(a0,3) << " Bohr^3)." << std::endl;
 
   // TODO what does this do
   if (ANGSTROM) {
@@ -154,7 +168,22 @@ int main(int argc, char ** argv) {
   double scratch;		// variable to capture junk
   for (int ii = 0; ii < natoms; ii++) {
     cube >> atoms[ii].atomicNo >> scratch >> atoms[ii].x >> atoms[ii].y >> atoms[ii].z;
+    if (!ANGSTROM) {
+      atoms[ii].x *= a0;
+      atoms[ii].y *= a0;
+      atoms[ii].z *= a0;
+    }
   }
+  std::cout << std::endl;
+  std::cout << "Coordinates of atoms:" << std::endl;
+  for (int ii = 0; ii < atoms.size(); ii++) {
+    std::cout << atoms[ii].atomicNo;
+    std::cout << " " << std::setw(8) << std::scientific << atoms[ii].x;
+    std::cout << " " << std::setw(8) << std::scientific << atoms[ii].y;
+    std::cout << " " << std::setw(8) << std::scientific << atoms[ii].z;
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
 
   // The rest of the file is the volumetric data.
   std::vector<voxel> voxels;
@@ -165,7 +194,8 @@ int main(int argc, char ** argv) {
     for (int jj = 0; jj < ny; jj++) {
       for (int kk = 0; kk < nz; kk++) {
 	idx = ii*ny*nz + jj*nz + kk;
-	cube >> voxels[idx].density;			// electron density
+	cube >> scratch;
+	voxels[idx].density = vol*scratch;		// electron density times volume element
 	voxels[idx].xi = ii;				// x, y, z indices
 	voxels[idx].yi = jj;
 	voxels[idx].zi = kk;
@@ -188,12 +218,15 @@ int main(int argc, char ** argv) {
   double cutoffDensity = densityCutoffPercent*totalDensity;
 
   //// sort vector of voxels
-  // first copy voxel vector
-  // TODO: I AM HERE
+  // first copy voxel vector, for reference to find indices
+  std::vector<voxel> voxelsCopy (voxels);
 
+  // highest density values will now be at the beginning of voxels vector
   std::sort(voxels.begin(), voxels.end(), compareVoxel);
 
   //// find voxels which are within the isosurface
+  // starting with highest density, accumulate until cutoff is reached
+
   //// find electron density on the atom of interest
   //// find voxels at the surface of the atom of interest
   //// find distances between voxels on surface of atom
