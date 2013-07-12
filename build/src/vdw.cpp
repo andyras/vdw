@@ -243,7 +243,7 @@ int main(int argc, char ** argv) {
 
   //// output cube with just density of atom of interest
   if (outputCube) {
-    char * fileName = "AOI.cube";
+    char * fileName = "aoi.cube";
 
     std::cout << "AOI data will be written to " << fileName << std::endl;
 
@@ -251,43 +251,45 @@ int main(int argc, char ** argv) {
     // write comment lines
     o << "Electron density on atom at index " << aoi << std::endl;
     o << "Data originally from " << cubeFileName << std::endl;
-    o << std::setprecision(6);
+    o.precision(6);
+    o.setf(std::ios::fixed, std::ios::floatfield);
     // write number of atoms and origin
-    o << std::setw(5) << natoms << " ";
-    o << std::setw(12) << std::scientific << origin[0] << " ";
-    o << std::setw(12) << std::scientific << origin[1] << " ";
-    o << std::setw(12) << std::scientific << origin[2] << std::endl;
+    o << std::setw(5) << natoms;
+    o << std::setw(12) << origin[0]/a0;
+    o << std::setw(12) << origin[1]/a0;
+    o << std::setw(12) << origin[2]/a0 << std::endl;
     // write x, y, z number of points and unit vectors
-    o << std::setw(5) << nx << " ";
-    o << std::setw(12) << std::scientific << xv[0] << " ";
-    o << std::setw(12) << std::scientific << xv[1] << " ";
-    o << std::setw(12) << std::scientific << xv[2] << std::endl;
-    o << std::setw(5) << ny << " ";
-    o << std::setw(12) << std::scientific << yv[0] << " ";
-    o << std::setw(12) << std::scientific << yv[1] << " ";
-    o << std::setw(12) << std::scientific << yv[2] << std::endl;
-    o << std::setw(5) << nz << " ";
-    o << std::setw(12) << std::scientific << zv[0] << " ";
-    o << std::setw(12) << std::scientific << zv[1] << " ";
-    o << std::setw(12) << std::scientific << zv[2] << std::endl;
+    o << std::setw(5) << (+1*nx);
+    o << std::setw(12) << xv[0]/a0;
+    o << std::setw(12) << xv[1]/a0;
+    o << std::setw(12) << xv[2]/a0 << std::endl;
+    o << std::setw(5) << (+1*ny);
+    o << std::setw(12) << yv[0]/a0;
+    o << std::setw(12) << yv[1]/a0;
+    o << std::setw(12) << yv[2]/a0 << std::endl;
+    o << std::setw(5) << (+1*nz);
+    o << std::setw(12) << zv[0]/a0;
+    o << std::setw(12) << zv[1]/a0;
+    o << std::setw(12) << zv[2]/a0 << std::endl;
     // write atomic numbers, dummy value and coordinates
     for (int ii = 0; ii < natoms; ii++) {
-      o << std::setw(5) << atoms[ii].atomicNo << " ";
-      o << std::setw(12) << std::scientific << 0.0 << " ";
-      o << std::setw(12) << std::scientific << atoms[ii].x << " ";
-      o << std::setw(12) << std::scientific << atoms[ii].y << " ";
-      o << std::setw(12) << std::scientific << atoms[ii].z << std::endl;
+      o << std::setw(5) << atoms[ii].atomicNo;
+      o << std::setw(12) << 0.0;
+      o << std::setw(12) << (origin[0]/a0 + atoms[ii].x/a0);
+      o << std::setw(12) << (origin[1]/a0 + atoms[ii].y/a0);
+      o << std::setw(12) << (origin[2]/a0 + atoms[ii].z/a0) << std::endl;
     }
     // write voxel data
+    o.precision(5);
     for (int ii = 0; ii < voxels.size(); ii++) {
       if (voxelInAtom(&voxels[ii], aoi, atoms)) {
-	o << std::setw(12) << std::scientific << voxels[ii].density << " ";
+	o << std::setw(13) << std::scientific << voxels[ii].density;
       }
       else {
-	o << std::setw(12) << std::scientific << 0.0 << " ";
+	o << std::setw(13) << std::scientific << 0.0;
       }
-      // line break every six voxels
-      if (!(ii % 6)) {
+      // line break every six voxels, or when loop over z is done
+      if ((!(((ii + 1) % nz) % 6)) || (!((ii + 1) % nz))) {
 	o << std::endl;
       }
     }
