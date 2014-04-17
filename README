@@ -1,4 +1,10 @@
 vdw
 ===
 
-computes some van der Waals properties of .cube file output from electronic structure
+This program computes some van der Waals properties of .cube file output from electronic structure.
+
+vdw can calculate:
+
+1.  The volume of a molecule
+2.  The volume of an atom within a molecule (Voronoi partitioning)
+3.  The approximate radius of an atom in a molecule
