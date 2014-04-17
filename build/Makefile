@@ -13,7 +13,7 @@ BINDIR = ../bin
 CXX = icpc
 CPP = $(CXX)
 # optimized CPPFLAGS
-CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div -g
+CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div -g -std=c++11
 # non-optimized CPPFLAGS
 #CPPFLAGS = -Wall -g -O0 -openmp
 INCLUDES = -I./$(INCDIR)
